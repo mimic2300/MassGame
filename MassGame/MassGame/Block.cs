@@ -37,5 +37,11 @@ namespace MassGame
             get { return type; }
             set { type = value; }
         }
+
+        public override bool Equals(object obj)
+        {
+            Block block = (Block)obj;
+            return (Position == block.Position);
+        }
     }
 }

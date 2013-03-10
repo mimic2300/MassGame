@@ -14,6 +14,9 @@ namespace MassGame
         private float speed = 0f;
         private float dt = 0f;
 
+        private Block currBlock;
+        private Block prevBlock;
+
         #region Konstruktory
         int ss = 0;
         /// <summary>
@@ -27,7 +30,8 @@ namespace MassGame
             GlibWindow.On_Keyboard += KeyboardInput;
             Acceleration = 0.0018f;
             MaxSpeed = 0.6f;
-            Delta = 0.0025f;
+            Delta = 0.0050f;
+            CurrentBlock = null;
         }
 
         #endregion Konstruktory
@@ -56,6 +60,21 @@ namespace MassGame
         /// Velikost úhlu pro změnu směru hráče.
         /// </summary>
         public float Delta { get; set; }
+
+        public Block CurrentBlock
+        {
+            get { return currBlock; }
+            set
+            {
+                prevBlock = currBlock;
+                currBlock = value;
+            }
+        }
+
+        public Block PreviousBlock
+        {
+            get { return prevBlock; }
+        }
 
         #endregion Vlastnosti
 

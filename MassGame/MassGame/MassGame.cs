@@ -8,7 +8,6 @@ namespace MassGame
     public class MassGame : GlibWindow
     {
         private Debug debug;
-        private Player player;
         private World world;
         private Texture2D backgroundTexture;
         private SpriteFont font;
@@ -26,21 +25,18 @@ namespace MassGame
         {
             base.Initialize();
 
-            Resolution = ResolutionType.R_1280x800;
+            Resolution = ResolutionType.R_720x480;
 
             font = Load<SpriteFont>("FontDebug");
             backgroundTexture = Load<Texture2D>("Background");
 
             debug = new Debug(this)
             {
-                Font = font
+                Font = font,
+                IsVisible = false
             };
 
-            player = new Player(this, Load<Texture2D>("Head"));
-            player.Origin = player.Center;
-            player.Position = new Vector2(player.Width, 300);
-
-            world = new World(this, 5, 5);
+            world = new World(this, 7, 7);
         }
 
         protected override void Update(GameTime gameTime)
@@ -79,7 +75,7 @@ namespace MassGame
             if (KeyboardState.IsKeyDown(Keys.M))
                 IsMouseVisible = !IsMouseVisible;
 
-            player.Update(gameTime);
+            world.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -87,26 +83,12 @@ namespace MassGame
             base.Draw(gameTime);
 
             Sprite.Begin();
+
             DrawBackground();
 
-            // pouze debug hr·Ëe
-            Sprite.DrawString(debug.Font, "Position: " + player.Position.ToString(),
-                new Vector2(5 + player.X + player.Width / 2, 5 + player.Y - player.Height / 2), Color.Yellow);
-            Sprite.DrawString(debug.Font, "Rotation: " + player.Rotation.ToString(),
-                new Vector2(5 + player.X + player.Width / 2, 5 + player.Y - player.Height / 2 + 15), Color.Yellow);
-            Sprite.DrawString(debug.Font, "Scale: " + player.Scale.ToString(),
-                new Vector2(5 + player.X + player.Width / 2, 5 + player.Y - player.Height / 2 + 30), Color.Yellow);
-            Sprite.DrawString(debug.Font, "Size: " + player.Width + "x" + player.Height,
-                new Vector2(5 + player.X + player.Width / 2, 5 + player.Y - player.Height / 2 + 45), Color.Yellow);
-            Sprite.DrawString(debug.Font, "Speed: " + player.Speed,
-                new Vector2(5 + player.X + player.Width / 2, 5 + player.Y - player.Height / 2 + 60), Color.Yellow);
-            Sprite.DrawString(debug.Font, "Controls: arrows and [space]",
-                new Vector2(5 + player.X + player.Width / 2, 5 + player.Y - player.Height / 2 + 75), Color.LightSkyBlue);
-            player.Draw(Sprite, gameTime);
-
             world.Draw(Sprite, gameTime);
-
             debug.Draw(Sprite, gameTime);
+
             Sprite.End();
         }
 

@@ -1,16 +1,18 @@
 ﻿using glib;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 
 namespace MassGame
 {
     /// <summary>
     /// Herní svět / mapa.
     /// </summary>
-    class World : IDraw
+    class World : IUpdate, IDraw
     {
         private GlibWindow window;
-        private Block[,] blocks;
+        private Block[][] blocks;
+        private Player player;
 
         #region Konstruktory
 
@@ -25,6 +27,10 @@ namespace MassGame
             this.window = window;
             Width = width;
             Height = height;
+
+            player = new Player(window, window.Content.Load<Texture2D>("blocks/block_player"));
+            player.Origin = player.Center;
+            player.Position += player.Center + new Vector2(player.Width * 3f, player.Height * 3f);
 
             CreateWorld();
         }
@@ -45,26 +51,9 @@ namespace MassGame
 
         #endregion Vlastnosti
 
-        /// <summary>
-        /// Vytvoří / vygeneruje svět.
-        /// </summary>
-        private void CreateWorld()
+        public void Update(GameTime gameTime)
         {
-            blocks = new Block[Width, Height];
-
-            Sprite sprite = new Sprite(window, window.Content.Load<Texture2D>("blocks/block_stone"));
-
-            for (int x = 0; x < Width; x++)
-            {
-                for (int y = 0; y < Width; y++)
-                {
-                    Block block = new Block(sprite);
-                    block.Type = BlockType.Stone;
-                    block.SetScale(0.5f);
-                    block.Position = new Vector2(x * block.Width * block.Scale.X, y * block.Height * block.Scale.Y);
-                    blocks[x, y] = block;
-                }
-            }
+            player.Update(gameTime);
         }
 
         /// <summary>
@@ -76,25 +65,73 @@ namespace MassGame
         {
             for (int x = 0; x < Width; x++)
             {
+                for (int y = 0; y < Height; y++)
+                {
+                    Block block = blocks[x][y];
+                    block.Draw(sprite, gameTime);
+                    sprite.DrawString(((MassGame)window).Font, x + "," + y, block.Position + new Vector2(5, 5), Color.Silver);
+
+                    if (block.Contains(player.Position - new Vector2(block.Width, block.Height) + player.Center * 2f))
+                    {
+                        if (player.CurrentBlock == null || !player.CurrentBlock.Equals(block))
+                        {
+                            player.CurrentBlock = block;
+                            System.Console.WriteLine("Current block: " + block.Position + ", Type: " + System.Enum.GetName(typeof(BlockType), block.Type));
+                        }
+                    }
+
+                    if (player.Contains(block.Width * Width - 2, (int)player.Y))
+                    {
+                        /*
+                        Block[] newVector = new Block[Height + 1];
+
+                        for (int z = 0; z < newVector.Length; z++)
+                        {
+                            newVector[z] = new Block(blocks[x][y]);
+                        }
+
+                        Array.Resize<Block>(ref blocks, newVector.Length);
+                        Array.Copy(newVector, blocks, newVector.Length);
+                        Height = newVector.Length;
+                        */
+                    }
+                }
+            }
+            sprite.Draw(player.CurrentBlock.Texture, player.CurrentBlock.Position, Color.Red);
+
+            player.Draw(sprite, gameTime);
+        }
+
+        /// <summary>
+        /// Vytvoří / vygeneruje svět.
+        /// </summary>
+        private void CreateWorld()
+        {
+            blocks = new Block[Width][];
+
+            Sprite stone = new Sprite(window, window.Content.Load<Texture2D>("blocks/block_stone"));
+            Sprite wall = new Sprite(window, window.Content.Load<Texture2D>("blocks/block_wall"));
+
+            for (int x = 0; x < Width; x++)
+            {
+                blocks[x] = new Block[Height];
+
                 for (int y = 0; y < Width; y++)
                 {
-                    Block block = blocks[x, y];
-                    Vector2 tmp = blocks[x, y].Position;
+                    Block block;
 
-                    block.Position += new Vector2(200, 400);
-
-                    if (block.Contains(window.MouseState.X, window.MouseState.Y))
+                    if (y == 0 || y == Width - 1)
                     {
-                        block.Color = new Color(120, 120, 120, 160);
-                        block.Draw(sprite, gameTime);
-                        sprite.DrawString(((MassGame)window).Font, ":-)", block.Position, Color.YellowGreen);
+                        block = new Block(wall);
+                        block.Type = BlockType.Wall;
                     }
                     else
                     {
-                        block.Draw(sprite, gameTime);
+                        block = new Block(stone);
+                        block.Type = BlockType.Stone;
                     }
-                    block.Position = tmp;
-                    block.Color = Color.White;
+                    block.Position = new Vector2(x * block.Width * block.Scale.X, y * block.Height * block.Scale.Y);
+                    blocks[x][y] = block;
                 }
             }
         }
